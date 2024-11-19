@@ -12,11 +12,17 @@ def train_model():
     # Initialize model, criterion, and optimizer
     model = LightFashionCNN().to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=CONFIG['learning_rate'])
+    optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
     
     # Get data loader
     train_loader = get_fashion_mnist_loader()
-
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(
+        optimizer,
+        max_lr=0.01,
+        epochs=1,
+        steps_per_epoch=len(train_loader),
+        div_factor=10
+    )
     # Training loop
     model.train()
     correct = 0
@@ -33,6 +39,7 @@ def train_model():
         # Backward pass
         loss.backward()
         optimizer.step()
+        scheduler.step()
         
         # Calculate accuracy
         _, predicted = output.max(1)
